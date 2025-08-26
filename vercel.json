@@ -3,6 +3,7 @@
     { "path": "/refresh/monkeytype", "schedule": "0 5 * * *" }
   ],
   "rewrites": [
-    { "source": "/refresh/monkeytype", "destination": "/api/refresh/monkeytype" }
+    { "source": "/refresh/monkeytype", "destination": "/api/put/monkeytype" },
+    { "source": "/monkeytype", "destination": "/api/get/monkeytype" }
   ]
 }

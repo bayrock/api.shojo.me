@@ -17,10 +17,10 @@
         <script>
             fetch('/endpoints.json')
                 .then(response => response.json())
-                .then(data => {
+                .then(files => {
                     const fileList = document.getElementById('file-list');
 
-                    data.files.forEach(file => {
+                    files.forEach(file => {
                         const listItem = document.createElement('li');
                         const link = document.createElement('a');
                         const refresh = document.createElement('a');
@@ -29,7 +29,7 @@
                         link.textContent = file;
                         listItem.appendChild(link);
 
-                        refresh.href = `/refresh/${file.split('.')[0]}`;
+                        refresh.href = `/refresh/${file}`;
                         refresh.textContent = '🔃';
                         refresh.style = 'text-decoration: none;'
                         listItem.appendChild(refresh);
