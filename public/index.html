@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>shojo.me API</title>
+    </head>
+    <body>
+        <main>
+            <a href="https://shojo.me">shojo.me</a> API
+            <h2>endpoints:</h2>
+            <ul id="file-list">
+                <!-- Links will be dynamically inserted here -->
+            </ul>
+        </main>
+
+        <script>
+            fetch('/endpoints.json')
+                .then(response => response.json())
+                .then(data => {
+                    const fileList = document.getElementById('file-list');
+
+                    data.files.forEach(file => {
+                        const listItem = document.createElement('li');
+                        const link = document.createElement('a');
+                        const refresh = document.createElement('a');
+                        
+                        link.href = `/${file}`;
+                        link.textContent = file;
+                        listItem.appendChild(link);
+
+                        refresh.href = `/refresh/${file.split('.')[0]}`;
+                        refresh.textContent = '🔃';
+                        refresh.style = 'text-decoration: none;'
+                        listItem.appendChild(refresh);
+
+                        fileList.appendChild(listItem);
+                    });
+                })
+                .catch(error => console.error('Error fetching file list:', error));
+        </script>
+    </body>
+</html>

@@ -1,0 +1,15 @@
+{
+  "name": "api.shojo.me",
+  "version": "1.0.0",
+  "scripts": {
+    "dev": "vercel dev",
+    "start": "vercel dev",
+    "build": "vercel --prod",
+    "serve": "pnpx serve ."
+  },
+  "author": "bayrock",
+  "packageManager": "pnpm@10.10.0",
+  "dependencies": {
+    "@vercel/blob": "^1.1.1"
+  }
+}
