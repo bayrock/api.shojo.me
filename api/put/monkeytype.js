@@ -1,37 +1,59 @@
-import { put } from "@vercel/blob";
+import { get, put } from "@vercel/blob";
 
-const UID = 'wwezGtenkPeTFJTioEK0KZcXWXq1';
+const FILENAME = "monkeytype.json"
+const UID = "wwezGtenkPeTFJTioEK0KZcXWXq1";
+const API = `https://api.monkeytype.com/users/${UID}/profile?isUid`
+const RATE_LIMIT = Math.floor(Number(process.env.RATE_LIMIT_MS))
+
+
+const isAdmin = (req) => req.query.key == process.env.REFRESH_KEY;
 
 export default async function handler(req, res) {
     try {
-        // Fetch Monkeytype data
-        const qwertyRes = await fetch(`https://api.monkeytype.com/users/${UID}/profile?isUid`)
+        // Rate limiting
+        let lastTimestamp = 0;
+        try {
+            const blob = await get(FILENAME);
+            const data = await blob.json();
+            lastTimestamp = data.timestamp || 0;
+        } catch(err) {
+            console.error(err);
+        }
 
-        if (!qwertyRes.ok) return res.status(500).json({ error: "Failed to fetch external Monkeytype data ❎" });
+        const now = Date.now();
+        const lastRefresh = now - lastTimestamp;
+        if (lastRefresh < RATE_LIMIT && !isAdmin(req)) {
+            return res.status(429).json({ error: `${FILENAME} is up-to-date ❎` });
+        }
+
+        // Fetch Monkeytype API
+        const qwertyRes = await fetch(API);
+        if (!qwertyRes.ok) {
+            return res.status(500).json({ error: `Failed to fetch ${API} ❎` });
+        }
 
         const qwertyJson = await qwertyRes.json();
-
         const output = {
             qwerty: {
                 stats: qwertyJson.data.typingStats,
                 bests: qwertyJson.data.personalBests
             },
-            timestamp: Date.now()
+            timestamp: now
         };
 
         // Upload monkeytype.json
-        const { url } = await put("monkeytype.json", JSON.stringify(output, null, 2), {
+        const { url } = await put(FILENAME, JSON.stringify(output, null, 2), {
             access: "public",
             contentType: "application/json",
             token: process.env.BLOB_READ_WRITE_TOKEN
         });
 
         return res.status(200).json({ 
-            message: "Monkeytype data refreshed ✅",
+            message: `${FILENAME} refreshed ✅`,
             blob: url
         });
     } catch (err) {
         console.error(err);
-        return res.status(500).json({ error: "Failed to refresh Monkeytype data ❎" });
+        return res.status(500).json({ error: `Failed to refresh ${FILENAME} ❎` });
     }
 }
