@@ -15,29 +15,29 @@
         </main>
 
         <script>
-            fetch('/endpoints.json')
+            fetch("/endpoints.json")
                 .then(response => response.json())
                 .then(files => {
-                    const fileList = document.getElementById('file-list');
+                    const fileList = document.getElementById("file-list");
 
                     files.forEach(file => {
-                        const listItem = document.createElement('li');
-                        const link = document.createElement('a');
-                        const refresh = document.createElement('a');
+                        const listItem = document.createElement("li");
+                        const link = document.createElement("a");
+                        const refresh = document.createElement("a");
                         
                         link.href = `/${file}`;
                         link.textContent = file;
                         listItem.appendChild(link);
 
                         refresh.href = `/refresh/${file}`;
-                        refresh.textContent = '🔃';
-                        refresh.style = 'text-decoration: none;'
+                        refresh.textContent = "🔃";
+                        refresh.style = "text-decoration: none;"
                         listItem.appendChild(refresh);
 
                         fileList.appendChild(listItem);
                     });
                 })
-                .catch(error => console.error('Error fetching file list:', error));
+                .catch(error => console.error("Error fetching file list:", error));
         </script>
     </body>
 </html>
