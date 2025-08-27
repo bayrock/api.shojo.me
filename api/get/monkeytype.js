@@ -1,12 +1,18 @@
-import { get } from "@vercel/blob";
+import { list } from "@vercel/blob";
 
-const FILENAME = "monkeytype.json"
-const CLIENT_CACHE_LIMIT = 60
+const FILENAME = "monkeytype.json";
+const CLIENT_CACHE_LIMIT = 60;
 const SERVER_CACHE_LIMIT = Math.floor(Number(process.env.RATE_LIMIT_MS) / 1000);
 
 export default async function handler(req, res) {
     try {
-        const blobData = await get(`${FILENAME}`);
+        const { blobs } = await list();
+        const blob = blobs.find(b => b.pathname === FILENAME);
+
+        if (!blob)
+            return res.status(404).json({ error: `${FILENAME} not found in blob ❎` });
+
+        const blobData = await fetch(blob.url);
         const text = await blobData.text();
 
         res.setHeader("Content-Type", "application/json");
