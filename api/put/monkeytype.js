@@ -1,10 +1,10 @@
-import { get, put } from "@vercel/blob";
+import { put } from "@vercel/blob";
+import get from "../../modules/get.js";
 
 const FILENAME = "monkeytype.json"
 const UID = "wwezGtenkPeTFJTioEK0KZcXWXq1";
 const API = `https://api.monkeytype.com/users/${UID}/profile?isUid`
 const RATE_LIMIT = Math.floor(Number(process.env.RATE_LIMIT_MS))
-
 
 const isAdmin = (req) => req.query.key == process.env.REFRESH_KEY;
 
@@ -13,8 +13,7 @@ export default async function handler(req, res) {
         // Rate limiting
         let lastTimestamp = 0;
         try {
-            const blob = await get(FILENAME);
-            const data = await blob.json();
+            const data = await get(FILENAME);
             lastTimestamp = data.timestamp || 0;
         } catch(err) {
             console.error(err);
@@ -22,15 +21,13 @@ export default async function handler(req, res) {
 
         const now = Date.now();
         const lastRefresh = now - lastTimestamp;
-        if (lastRefresh < RATE_LIMIT && !isAdmin(req)) {
+        if (lastRefresh < RATE_LIMIT && !isAdmin(req))
             return res.status(429).json({ error: `${FILENAME} is up-to-date ❎` });
-        }
 
         // Fetch Monkeytype API
         const qwertyRes = await fetch(API);
-        if (!qwertyRes.ok) {
+        if (!qwertyRes.ok)
             return res.status(500).json({ error: `Failed to fetch ${API} ❎` });
-        }
 
         const qwertyJson = await qwertyRes.json();
         const output = {
@@ -45,6 +42,7 @@ export default async function handler(req, res) {
         const { url } = await put(FILENAME, JSON.stringify(output, null, 2), {
             access: "public",
             contentType: "application/json",
+            allowOverwrite: true,
             token: process.env.BLOB_READ_WRITE_TOKEN
         });
 
