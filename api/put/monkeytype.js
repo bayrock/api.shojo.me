@@ -33,7 +33,8 @@ export default async function handler(req, res) {
         const output = {
             qwerty: {
                 stats: qwertyJson.data.typingStats,
-                bests: qwertyJson.data.personalBests
+                bests: qwertyJson.data.personalBests,
+                streak: qwertyJson.data.streak
             },
             timestamp: now
         };
