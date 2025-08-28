@@ -2,10 +2,9 @@
   "name": "api.shojo.me",
   "version": "1.0.0",
   "scripts": {
-    "dev": "vercel dev",
+    "dev": "pnpx serve .",
     "start": "vercel dev",
-    "deploy": "vercel --prod",
-    "serve": "pnpx serve ."
+    "deploy": "vercel --prod"
   },
   "author": "bayrock",
   "packageManager": "pnpm@10.10.0",

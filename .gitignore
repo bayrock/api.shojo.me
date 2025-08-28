@@ -3,3 +3,7 @@ node_modules/
 
 # mailmap
 mailmap.txt
+
+# dev env
+.vercel
+.env*.local
