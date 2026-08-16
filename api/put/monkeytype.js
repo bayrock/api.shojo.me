@@ -1,12 +1,11 @@
 import { put } from "@vercel/blob";
 import get from "../../modules/get.js";
+import isAdmin from "../../modules/isAdmin.js";
 
 const FILENAME = "monkeytype.json"
 const UID = "wwezGtenkPeTFJTioEK0KZcXWXq1";
 const API = `https://api.monkeytype.com/users/${UID}/profile?isUid`
 const RATE_LIMIT = Math.floor(Number(process.env.RATE_LIMIT_MS))
-
-const isAdmin = (req) => req.query.key == process.env.REFRESH_KEY;
 
 export default async function handler(req, res) {
     try {
