@@ -1,0 +1,116 @@
+import { put } from "@vercel/blob";
+import { XMLParser } from "fast-xml-parser";
+import get from "../../modules/get.js";
+import isAdmin from "../../modules/isAdmin.js";
+
+const FILENAME = "lastfm.json";
+const API = "https://lfm.xiffy.nl/bayrock";
+const RATE_LIMIT = Number(process.env.RATE_LIMIT_MS);
+
+const parser = new XMLParser({
+    ignoreAttributes: false,
+    attributeNamePrefix: "@_"
+});
+
+export default async function handler(req, res) {
+    try {
+        // Rate limiting
+        let existing = {
+            tracks: [],
+            timestamp: 0
+        };
+
+        try {
+            existing = await get(FILENAME);
+        } catch (err) {
+            console.log(`${FILENAME} does not exist yet`);
+        }
+
+        const now = Date.now();
+
+        if (now - (existing.timestamp || 0) < RATE_LIMIT&& !isAdmin(req)) {
+            return res.status(429).json({
+                error: `${FILENAME} is up-to-date ❎`,
+                message: "too many requests"
+            });
+        }
+
+        // Fetch RSS feed
+        const response = await fetch(API, {
+            headers: { "User-Agent": "shojo.me/lastfm" }
+        });
+
+        if (!response.ok)
+            throw new Error(`xiffy returned HTTP ${response.status}`);
+
+        const xml = await response.text();
+        const feed = parser.parse(xml);
+        const items = feed?.rss?.channel?.item ?? [];
+
+        // Normalize tracks
+        const incoming = items
+            .filter(item => item["lfm:track"] && item.pubDate)
+            .map(item => ({
+                artist: item["lfm:artist"] || "",
+                artistMbid: item["lfm:artist_mbid"] || null,
+                track: item["lfm:track"] || "",
+                trackUrl: item["lfm:track_url"] || item.link || null,
+                mbid: item["lfm:mbid"] || null,
+                album: item["lfm:album"] || "",
+                albumMbid: item["lfm:album_mbid"] || null,
+                libraryTrack: item["lfm:library_track"] || null,
+                libraryArtist: item["lfm:library_artist"] || null,
+                libraryAlbum: item["lfm:library_album"] || null,
+                image: item.enclosure?.["@_url"] || null,
+                timestamp: new Date(item.pubDate).getTime()
+            }));
+
+        // Merge with existing history
+        const tracks = [
+            ...existing.tracks,
+            ...incoming
+        ];
+
+        // Deduplicate
+        const unique = Array.from(
+            new Map(
+                tracks.map(track => [
+                    `${track.timestamp}:${track.artist}:${track.track}`,
+                    track
+                ])
+            ).values()
+        ).sort((a, b) => b.timestamp - a.timestamp);
+
+        const output = {
+            tracks: unique,
+            timestamp: now
+        };
+
+        // Upload
+        const { url } = await put(
+            FILENAME,
+            JSON.stringify(output, null, 2),
+            {
+                access: "public",
+                contentType: "application/json",
+                allowOverwrite: true,
+                token: process.env.BLOB_READ_WRITE_TOKEN
+            }
+        );
+
+        return res.status(200).json({
+            message: `${FILENAME} refreshed ✅`,
+            added: incoming.length,
+            total: unique.length,
+            blob: url
+        });
+
+    } catch (err) {
+        console.error(err);
+
+        return res.status(500).json({
+            error: `Failed to refresh ${FILENAME} ❎`,
+            message: err.message
+        });
+    }
+}
