@@ -1,6 +1,6 @@
 import get from "../../modules/get.js";
+import endpoints from "../../public/endpoints.json";
 
-const FILENAME = "monkeytype.json";
 const CLIENT_CACHE_LIMIT = 60;
 const SERVER_CACHE_LIMIT = Math.floor(Number(process.env.RATE_LIMIT_MS) / 1000);
 
@@ -14,12 +14,23 @@ export default async function handler(req, res) {
         if (req.method === "OPTIONS") return res.status(200).end();
 
         // Fetch data
-        const data = await get(FILENAME);
+        if (!req.query.file || !endpoints.includes(req.query.file))
+            throw new Error("file not found");
+
+        const data = await get(`${req.query.file}.json`);
+
         res.setHeader("Content-Type", "application/json");
-        res.setHeader("Cache-Control", `public, max-age=${CLIENT_CACHE_LIMIT}, s-maxage=${SERVER_CACHE_LIMIT}`);
+        res.setHeader(
+            "Cache-Control",
+            `public, max-age=${CLIENT_CACHE_LIMIT}, s-maxage=${SERVER_CACHE_LIMIT}`
+        );
+
         return res.status(200).send(data);
     } catch (err) {
         console.error(err);
-        return res.status(500).json({ error: `Failed to fetch ${FILENAME} from blob ❎` });
+        return res.status(500).json({
+            error: `Failed to fetch ${req.query.file || "null"}.json from blob ❎`,
+            message: err.message
+        });
     }
 }

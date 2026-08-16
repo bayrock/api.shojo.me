@@ -7,3 +7,6 @@ mailmap.txt
 # dev env
 .vercel
 .env*.local
+
+# todo
+todo.md

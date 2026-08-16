@@ -9,6 +9,7 @@
   "author": "bayrock",
   "packageManager": "pnpm@10.10.0",
   "dependencies": {
-    "@vercel/blob": "^1.1.1"
+    "@vercel/blob": "^1.1.1",
+    "fast-xml-parser": "^5.11.0"
   }
 }

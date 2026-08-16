@@ -4,6 +4,6 @@
   ],
   "rewrites": [
     { "source": "/refresh/monkeytype", "destination": "/api/put/monkeytype" },
-    { "source": "/monkeytype", "destination": "/api/get/monkeytype" }
+    { "source": "/monkeytype", "destination": "/api/get/fetch?file=monkeytype" }
   ]
 }

@@ -21,12 +21,15 @@ export default async function handler(req, res) {
         const now = Date.now();
         const lastRefresh = now - lastTimestamp;
         if (lastRefresh < RATE_LIMIT && !isAdmin(req))
-            return res.status(429).json({ error: `${FILENAME} is up-to-date ❎` });
+            return res.status(429).json({
+            error: `${FILENAME} is up-to-date ❎` ,
+            message: "too many requests"
+        });
 
         // Fetch Monkeytype API
         const qwertyRes = await fetch(API);
         if (!qwertyRes.ok)
-            return res.status(500).json({ error: `Failed to fetch ${API} ❎` });
+            throw new Error(`failed to fetch ${API}`);
 
         const qwertyJson = await qwertyRes.json();
         const output = {
@@ -52,6 +55,9 @@ export default async function handler(req, res) {
         });
     } catch (err) {
         console.error(err);
-        return res.status(500).json({ error: `Failed to refresh ${FILENAME} ❎` });
+        return res.status(500).json({ 
+            error: `Failed to refresh ${FILENAME} ❎`,
+            message: err.message
+        });
     }
 }
