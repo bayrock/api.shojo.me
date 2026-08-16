@@ -17,9 +17,10 @@ export default async function handler(req, res) {
         if (!req.query.file || !endpoints.includes(req.query.file))
             throw new Error("file not found");
 
-        const data = await get(`${req.query.file}.json`);
+        const type = req.query.type || ".json";
+        const data = await get(`${req.query.file}${type}`);
 
-        res.setHeader("Content-Type", "application/json");
+        res.setHeader("Content-Type", `application/${type.slice(1)}`);
         res.setHeader(
             "Cache-Control",
             `public, max-age=${CLIENT_CACHE_LIMIT}, s-maxage=${SERVER_CACHE_LIMIT}`
@@ -29,7 +30,7 @@ export default async function handler(req, res) {
     } catch (err) {
         console.error(err);
         return res.status(500).json({
-            error: `Failed to fetch ${req.query.file || "null"}.json from blob ❎`,
+            error: `Failed to fetch ${req.query.file || "null"}${req.query.type || ".json"} from blob ❎`,
             message: err.message
         });
     }
