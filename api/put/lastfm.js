@@ -1,6 +1,7 @@
 import { put } from "@vercel/blob";
 import { XMLParser } from "fast-xml-parser";
 import get from "../../modules/get.js";
+import upload from "../../modules/upload.js";
 import isAdmin from "../../modules/isAdmin.js";
 
 const FILENAME = "lastfm.json";
@@ -23,12 +24,12 @@ export default async function handler(req, res) {
         try {
             existing = await get(FILENAME);
         } catch (err) {
-            console.log(`${FILENAME} does not exist yet`);
+            console.error(`${FILENAME} does not exist yet`);
         }
 
         const now = Date.now();
 
-        if (now - (existing.timestamp || 0) < RATE_LIMIT&& !isAdmin(req)) {
+        if (now - (existing.timestamp || 0) < RATE_LIMIT && !isAdmin(req)) {
             return res.status(429).json({
                 error: `${FILENAME} is up-to-date ❎`,
                 message: "too many requests"
@@ -81,30 +82,21 @@ export default async function handler(req, res) {
             ).values()
         ).sort((a, b) => b.timestamp - a.timestamp);
 
-        const output = {
+        const data = {
             tracks: unique,
             timestamp: now
         };
 
-        // Upload
-        const { url } = await put(
-            FILENAME,
-            JSON.stringify(output, null, 2),
-            {
-                access: "public",
-                contentType: "application/json",
-                allowOverwrite: true,
-                token: process.env.BLOB_READ_WRITE_TOKEN
-            }
-        );
+        // Upload lastfm.json
+        const results = await upload(data);
 
+        // Return results
         return res.status(200).json({
-            message: `${FILENAME} refreshed ✅`,
+            message: results.message,
             added: incoming.length,
             total: unique.length,
-            blob: url
+            blob: results.blob
         });
-
     } catch (err) {
         console.error(err);
 

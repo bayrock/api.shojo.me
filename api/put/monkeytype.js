@@ -1,5 +1,5 @@
-import { put } from "@vercel/blob";
 import get from "../../modules/get.js";
+import upload from "../../modules/upload.js";
 import isAdmin from "../../modules/isAdmin.js";
 
 const FILENAME = "monkeytype.json"
@@ -32,7 +32,7 @@ export default async function handler(req, res) {
             throw new Error(`failed to fetch ${API}`);
 
         const qwertyJson = await qwertyRes.json();
-        const output = {
+        const data = {
             qwerty: {
                 stats: qwertyJson.data.typingStats,
                 bests: qwertyJson.data.personalBests,
@@ -42,16 +42,12 @@ export default async function handler(req, res) {
         };
 
         // Upload monkeytype.json
-        const { url } = await put(FILENAME, JSON.stringify(output, null, 2), {
-            access: "public",
-            contentType: "application/json",
-            allowOverwrite: true,
-            token: process.env.BLOB_READ_WRITE_TOKEN
-        });
+        const results = await upload(FILENAME, data);
 
+        // Return results
         return res.status(200).json({ 
-            message: `${FILENAME} refreshed ✅`,
-            blob: url
+            message: results.message,
+            blob: results.blob
         });
     } catch (err) {
         console.error(err);
