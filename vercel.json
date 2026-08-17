@@ -6,6 +6,8 @@
     { "source": "/refresh/monkeytype", "destination": "/api/put/monkeytype" },
     { "source": "/monkeytype", "destination": "/api/get/fetch?file=monkeytype" },
     { "source": "/refresh/lastfm", "destination": "/api/put/lastfm" },
-    { "source": "/lastfm", "destination": "/api/get/fetch?file=lastfm" }
+    { "source": "/lastfm", "destination": "/api/get/fetch?file=lastfm" },
+    { "source": "/refresh/status", "destination": "/api/get/fetch?file=status" },
+    { "source": "/status", "destination": "/api/get/fetch?file=status" }
   ]
 }

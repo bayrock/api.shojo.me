@@ -1,8 +1,8 @@
-import { put } from "@vercel/blob";
 import { XMLParser } from "fast-xml-parser";
 import get from "../../modules/get.js";
 import upload from "../../modules/upload.js";
 import isAdmin from "../../modules/isAdmin.js";
+import setStatus from "../../modules/setStatus.js";
 
 const FILENAME = "lastfm.json";
 const API = "https://lfm.xiffy.nl/bayrock";
@@ -67,15 +67,15 @@ export default async function handler(req, res) {
             }));
 
         // Merge with existing history
-        const tracks = [
+        const history = [
             ...existing.tracks,
             ...incoming
         ];
 
         // Deduplicate
-        const unique = Array.from(
+        const tracks = Array.from(
             new Map(
-                tracks.map(track => [
+                history.map(track => [
                     `${track.timestamp}:${track.artist}:${track.track}`,
                     track
                 ])
@@ -83,18 +83,26 @@ export default async function handler(req, res) {
         ).sort((a, b) => b.timestamp - a.timestamp);
 
         const data = {
-            tracks: unique,
+            tracks: tracks,
             timestamp: now
         };
 
         // Upload lastfm.json
-        const results = await upload(data);
+        const results = await upload(FILENAME, data);
+
+        // Set status
+        const { track, artist, timestamp } = tracks[0];
+        const status = await setStatus(`listening to ${track} by ${artist}`, timestamp);
+        if (status.error)
+            console.error(status.error);
+        else
+            console.log(status.message);
 
         // Return results
         return res.status(200).json({
             message: results.message,
-            added: incoming.length,
-            total: unique.length,
+            discovered: tracks.length - existing.tracks.length,
+            total: tracks.length,
             blob: results.blob
         });
     } catch (err) {
