@@ -29,12 +29,8 @@ export default async function handler(req, res) {
 
         const now = Date.now();
 
-        if (now - (existing.timestamp || 0) < RATE_LIMIT && !isAdmin(req)) {
-            return res.status(429).json({
-                error: `${FILENAME} is up-to-date ❎`,
-                message: "too many requests"
-            });
-        }
+        if (now - (existing.timestamp || 0) < RATE_LIMIT && !isAdmin(req))
+            throw new Error("too many requests", { cause: 429 });
 
         // Fetch RSS feed
         const response = await fetch(API, {
@@ -82,12 +78,12 @@ export default async function handler(req, res) {
             ).values()
         ).sort((a, b) => b.timestamp - a.timestamp);
 
+        // Upload lastfm.json
         const data = {
             tracks: tracks,
             timestamp: now
         };
 
-        // Upload lastfm.json
         const results = await upload(FILENAME, data);
 
         // Set status
@@ -108,7 +104,7 @@ export default async function handler(req, res) {
     } catch (err) {
         console.error(err);
 
-        return res.status(500).json({
+        return res.status(err.cause || 500).json({
             error: `Failed to refresh ${FILENAME} ❎`,
             message: err.message
         });

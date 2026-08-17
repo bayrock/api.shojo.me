@@ -21,10 +21,7 @@ export default async function handler(req, res) {
         const now = Date.now();
         const lastRefresh = now - lastTimestamp;
         if (lastRefresh < RATE_LIMIT && !isAdmin(req))
-            return res.status(429).json({
-            error: `${FILENAME} is up-to-date ❎` ,
-            message: "too many requests"
-        });
+            throw new Error("too many requests", { cause: 429 });
 
         // Fetch Monkeytype API
         const qwertyRes = await fetch(API);
@@ -32,6 +29,8 @@ export default async function handler(req, res) {
             throw new Error(`failed to fetch ${API}`);
 
         const qwertyJson = await qwertyRes.json();
+
+        // Upload monkeytype.json
         const data = {
             qwerty: {
                 stats: qwertyJson.data.typingStats,
@@ -41,7 +40,6 @@ export default async function handler(req, res) {
             timestamp: now
         };
 
-        // Upload monkeytype.json
         const results = await upload(FILENAME, data);
 
         // Return results
@@ -51,7 +49,8 @@ export default async function handler(req, res) {
         });
     } catch (err) {
         console.error(err);
-        return res.status(500).json({ 
+
+        return res.status(err.cause || 500).json({ 
             error: `Failed to refresh ${FILENAME} ❎`,
             message: err.message
         });
