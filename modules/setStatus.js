@@ -10,7 +10,7 @@ async function setStatus(message, timestamp) {
         try {
             existing = await get(FILENAME);
         } catch (err) {
-            console.log(`${FILENAME} does not exist yet`);
+            console.log(err.message);
         }
 
         if (existing.timestamp >= timestamp)

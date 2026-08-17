@@ -4,7 +4,7 @@ async function get(file) {
     const { blobs } = await list();
     const blob = blobs.find(b => b.pathname === file);
 
-    if (!blob) throw `${file} not found in blob ❎`;
+    if (!blob) throw new Error(`${file} not found in blob`);
 
     const blobData = await fetch(blob.url);
     return await blobData.json();

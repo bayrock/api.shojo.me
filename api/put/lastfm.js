@@ -25,7 +25,7 @@ export default async function handler(req, res) {
         try {
             existing = await get(FILENAME);
         } catch (err) {
-            console.error(`${FILENAME} does not exist yet`);
+            console.error(err.message);
         }
 
         const now = Date.now();
