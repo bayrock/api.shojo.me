@@ -10,16 +10,15 @@ const RATE_LIMIT = Math.floor(Number(process.env.RATE_LIMIT_MS))
 export default async function handler(req, res) {
     try {
         // Rate limiting
-        let lastTimestamp = 0;
+        let existing = {};
         try {
-            const data = await get(FILENAME);
-            lastTimestamp = data.timestamp || 0;
+            existing = await get(FILENAME);
         } catch(err) {
             console.error(err);
         }
 
         const now = Date.now();
-        const lastRefresh = now - lastTimestamp;
+        const lastRefresh = now - existing.timestamp;
         if (lastRefresh < RATE_LIMIT && !isAdmin(req))
             throw new Error("too many requests", { cause: 429 });
 
@@ -28,14 +27,18 @@ export default async function handler(req, res) {
         if (!qwertyRes.ok)
             throw new Error(`failed to fetch ${API}`);
 
-        const qwertyJson = await qwertyRes.json();
+        const parsed = await qwertyRes.json();
+        const incoming = parsed.data;
+
+        if (existing.qwerty.stats.startedTests == incoming.typingStats.startedTests)
+            throw new Error(`no new ${FILENAME} data discovered`)
 
         // Upload monkeytype.json
         const data = {
             qwerty: {
-                stats: qwertyJson.data.typingStats,
-                bests: qwertyJson.data.personalBests,
-                streak: qwertyJson.data.streak
+                stats: incoming.typingStats,
+                bests: incoming.personalBests,
+                streak: incoming.streak
             },
             timestamp: now
         };

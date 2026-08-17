@@ -78,6 +78,10 @@ export default async function handler(req, res) {
             ).values()
         ).sort((a, b) => b.timestamp - a.timestamp);
 
+        const discovered = tracks.length - existing.tracks.length;
+        if (discovered == 0)
+            throw new Error(`no new ${FILENAME} data discovered`)
+
         // Upload lastfm.json
         const data = {
             tracks: tracks,
@@ -97,7 +101,7 @@ export default async function handler(req, res) {
         // Return results
         return res.status(200).json({
             message: results.message,
-            discovered: tracks.length - existing.tracks.length,
+            discovered: discovered,
             total: tracks.length,
             blob: results.blob
         });

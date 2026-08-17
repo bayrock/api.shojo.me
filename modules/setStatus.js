@@ -14,7 +14,7 @@ async function setStatus(message, timestamp) {
         }
 
         if (existing.timestamp >= timestamp)
-            throw new Error("the incoming status is stale");
+            throw new Error(`no new ${FILENAME} data discovered`)
 
         const data = { message, timestamp };
         return await upload(FILENAME, data);
