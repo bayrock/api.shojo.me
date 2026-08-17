@@ -23,11 +23,11 @@ export default async function handler(req, res) {
             throw new Error("too many requests", { cause: 429 });
 
         // Fetch Monkeytype API
-        const qwertyRes = await fetch(API);
-        if (!qwertyRes.ok)
+        const response = await fetch(API);
+        if (!response.ok)
             throw new Error(`failed to fetch ${API}`);
 
-        const parsed = await qwertyRes.json();
+        const parsed = await response.json();
         const incoming = parsed.data;
 
         if (existing.qwerty.stats.startedTests == incoming.typingStats.startedTests)

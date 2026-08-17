@@ -14,6 +14,9 @@ importers:
       fast-xml-parser:
         specifier: ^5.11.0
         version: 5.11.0
+      he:
+        specifier: ^1.2.0
+        version: 1.2.0
 
 packages:
 
@@ -39,6 +42,10 @@ packages:
 
   fast-xml-parser@5.11.0:
     resolution: {integrity: sha512-9IGxMqvqLOnqP+Egi1nqDHKv5k8aZ7r9n558enxcucmyVGEBNPAU+MOg/8jPIS7rO7sSq4gFm1/nHtiaubMruw==}
+    hasBin: true
+
+  he@1.2.0:
+    resolution: {integrity: sha512-F/1DnUGPopORZi0ni+CvrCgHQ5FyEAHRLSApuYWMmrbSwoN2Mn/7k+Gl38gJnR7yyDZk6WLXwiGod1JOWNDKGw==}
     hasBin: true
 
   is-buffer@2.0.5:
@@ -107,6 +114,8 @@ snapshots:
       path-expression-matcher: 1.6.2
       strnum: 2.4.2
       xml-naming: 0.3.0
+
+  he@1.2.0: {}
 
   is-buffer@2.0.5: {}
 

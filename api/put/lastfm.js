@@ -1,4 +1,5 @@
 import { XMLParser } from "fast-xml-parser";
+import he from "he";
 import get from "../../modules/get.js";
 import upload from "../../modules/upload.js";
 import isAdmin from "../../modules/isAdmin.js";
@@ -29,13 +30,11 @@ export default async function handler(req, res) {
 
         const now = Date.now();
 
-        if (now - (existing.timestamp || 0) < RATE_LIMIT && !isAdmin(req))
+        if (now - (existing.timestamp) < RATE_LIMIT && !isAdmin(req))
             throw new Error("too many requests", { cause: 429 });
 
         // Fetch RSS feed
-        const response = await fetch(API, {
-            headers: { "User-Agent": "shojo.me/lastfm" }
-        });
+        const response = await fetch(API);
 
         if (!response.ok)
             throw new Error(`xiffy returned HTTP ${response.status}`);
@@ -48,12 +47,12 @@ export default async function handler(req, res) {
         const incoming = items
             .filter(item => item["lfm:track"] && item.pubDate)
             .map(item => ({
-                artist: item["lfm:artist"] || "",
+                artist: he.decode(item["lfm:artist"]) || "",
                 artistMbid: item["lfm:artist_mbid"] || null,
-                track: item["lfm:track"] || "",
+                track: he.decode(item["lfm:track"]) || "",
                 trackUrl: item["lfm:track_url"] || item.link || null,
                 mbid: item["lfm:mbid"] || null,
-                album: item["lfm:album"] || "",
+                album: he.decode(item["lfm:album"])|| "",
                 albumMbid: item["lfm:album_mbid"] || null,
                 libraryTrack: item["lfm:library_track"] || null,
                 libraryArtist: item["lfm:library_artist"] || null,
