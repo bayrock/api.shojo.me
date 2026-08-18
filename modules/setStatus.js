@@ -20,6 +20,7 @@ async function setStatus(message, timestamp) {
         return await upload(FILENAME, data);
     } catch (err) {
         console.error(err);
+        
         return { 
             error: `Failed to refresh ${FILENAME} ❎`,
             message: err.message
