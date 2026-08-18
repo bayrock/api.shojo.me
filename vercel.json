@@ -9,6 +9,8 @@
     { "source": "/lastfm", "destination": "/api/get/fetch?file=lastfm" },
     { "source": "/refresh/letterboxd", "destination": "/api/put/letterboxd" },
     { "source": "/letterboxd", "destination": "/api/get/fetch?file=letterboxd" },
+    { "source": "/refresh/myanimelist", "destination": "/api/put/myanimelist" },
+    { "source": "/myanimelist", "destination": "/api/get/fetch?file=myanimelist" },
     { "source": "/refresh/status", "destination": "/api/get/fetch?file=status" },
     { "source": "/status", "destination": "/api/get/fetch?file=status" }
   ]
