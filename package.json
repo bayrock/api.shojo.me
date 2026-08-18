@@ -4,7 +4,8 @@
   "scripts": {
     "dev": "pnpx serve .",
     "start": "vercel dev",
-    "deploy": "vercel --prod"
+    "deploy": "vercel --prod",
+    "sync": "vercel env pull .env.local"
   },
   "author": "bayrock",
   "packageManager": "pnpm@10.10.0",

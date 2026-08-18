@@ -10,3 +10,5 @@ mailmap.txt
 
 # todo
 todo.md
+
+.env*
