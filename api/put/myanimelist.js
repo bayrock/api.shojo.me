@@ -47,9 +47,9 @@ export default async function handler(req, res) {
         const incoming = items
             .filter(item => item.title && item.guid && item.pubDate)
             .map(item => {
-                const [ title, type ] = he.decode(item.title).split(" - ");
+                const [ title, type ] = he.decode(String(item.title)).split(" - ");
 
-                const [ status, progress ] = he.decode(item.description).split(" - ");
+                const [ status, progress ] = he.decode(String(item.description)).split(" - ");
                 const [ watched, total ] = progress.replace(" episodes", "").split(" of ")
 
                 return {

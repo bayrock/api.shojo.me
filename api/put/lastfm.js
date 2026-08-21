@@ -47,12 +47,12 @@ export default async function handler(req, res) {
         const incoming = items
             .filter(item => item["lfm:track"] && item.pubDate)
             .map(item => ({
-                artist: he.decode(item["lfm:artist"]) || "",
+                artist: he.decode(String(item["lfm:artist"])) || "",
                 artistMbid: item["lfm:artist_mbid"] || null,
-                track: he.decode(item["lfm:track"]) || "",
+                track: he.decode(String(item["lfm:track"])) || "",
                 trackUrl: item["lfm:track_url"] || item.link || null,
                 mbid: item["lfm:mbid"] || null,
-                album: he.decode(item["lfm:album"])|| "",
+                album: he.decode(String(item["lfm:album"]))|| "",
                 albumMbid: item["lfm:album_mbid"] || null,
                 libraryTrack: item["lfm:library_track"] || null,
                 libraryArtist: item["lfm:library_artist"] || null,
@@ -78,7 +78,7 @@ export default async function handler(req, res) {
         ).sort((a, b) => b.timestamp - a.timestamp);
 
         const discovered = tracks.length - existing.tracks.length;
-        if (discovered == 0)
+        if (discovered === 0)
             throw new Error(`no new ${FILENAME} data discovered`)
 
         // Upload lastfm.json

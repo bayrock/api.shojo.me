@@ -74,7 +74,6 @@ export default async function handler(req, res) {
         if (discovered === 0)
             throw new Error(`no new ${FILENAME} data discovered`);
 
-
         // Upload steam.json
         const data = {
             games: incoming,
