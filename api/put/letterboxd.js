@@ -54,7 +54,7 @@ export default async function handler(req, res) {
                 )?.[1] || null;
 
                 return {
-                    title: he.decode(item["letterboxd:filmTitle"]) || "",
+                    title: he.decode(String(item["letterboxd:filmTitle"])) || "",
                     year: Number(item["letterboxd:filmYear"]) || null,
                     url: item.link || null,
                     guid: item.guid || null,
@@ -78,7 +78,7 @@ export default async function handler(req, res) {
         const films = Array.from(
             new Map(
                 history.map(film => [
-                    film.guid,
+                    film.url,
                     film
                 ])
             ).values()
