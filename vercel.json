@@ -13,6 +13,8 @@
     { "source": "/myanimelist", "destination": "/api/get/fetch?file=myanimelist" },
     { "source": "/refresh/steam", "destination": "/api/put/steam" },
     { "source": "/steam", "destination": "/api/get/fetch?file=steam" },
+    { "source": "/refresh/goodreads", "destination": "/api/put/goodreads" },
+    { "source": "/goodreads", "destination": "/api/get/fetch?file=goodreads" },
     { "source": "/refresh/status", "destination": "/api/get/fetch?file=status" },
     { "source": "/status", "destination": "/api/get/fetch?file=status" }
   ]
