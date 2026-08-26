@@ -7,12 +7,51 @@ import setStatus from "../../modules/setStatus.js";
 
 const FILENAME = "myanimelist.json";
 const API = "https://myanimelist.net/rss.php?type=rw&u=Bayrock";
+const ANILIST_URL = "https://graphql.anilist.co";
 const RATE_LIMIT = Number(process.env.RATE_LIMIT_MS);
 
 const parser = new XMLParser({
     ignoreAttributes: false,
     attributeNamePrefix: "@_"
 });
+
+const COVER_QUERY = `
+    query ($idMal: Int) {
+        Media(idMal: $idMal, type: ANIME) {
+            coverImage { large }
+        }
+    }
+`;
+
+async function getAniListCover(malId) {
+    try {
+        const res = await fetch(ANILIST_URL, {
+            method: "POST",
+            headers: { "Content-Type": "application/json", "Accept": "application/json" },
+            body: JSON.stringify({ query: COVER_QUERY, variables: { idMal: malId } })
+        });
+
+        // Back off preemptively if we're close to whatever limit is currently enforced
+        const remaining = Number(res.headers.get("x-ratelimit-remaining"));
+        if (!Number.isNaN(remaining) && remaining <= 1) {
+            await new Promise((r) => setTimeout(r, 2000));
+        }
+
+        if (res.status === 429) {
+            const retryAfter = Number(res.headers.get("retry-after")) || 5;
+            await new Promise((r) => setTimeout(r, retryAfter * 1000));
+            return null; // skip for this cycle, picked up again next refresh
+        }
+
+        if (!res.ok) return null;
+
+        const { data } = await res.json();
+        return data?.Media?.coverImage?.large ?? null;
+    } catch (err) {
+        console.error(`anilist lookup failed for MAL id ${malId}:`, err.message);
+        return null;
+    }
+}
 
 export default async function handler(req, res) {
     try {
@@ -43,30 +82,35 @@ export default async function handler(req, res) {
         const feed = parser.parse(xml);
         const items = feed?.rss?.channel?.item ?? [];
 
-        // Normalize anime
-        const incoming = items
-            .filter(item => item.title && item.guid && item.pubDate)
-            .map(item => {
-                const [ title, type ] = he.decode(String(item.title)).split(" - ");
+        // Normalize anime (sequentially for AniList)
+        const validItems = items.filter(item => item.title && item.guid && item.pubDate);
+        const incoming = [];
 
-                const [ status, progress ] = he.decode(String(item.description)).split(" - ");
-                const [ watched, total ] = progress.replace(" episodes", "").split(" of ")
+        for (const item of validItems) {
+            const [ title, type ] = he.decode(String(item.title)).split(" - ");
 
-                return {
-                    title,
-                    type,
-                    url: item.link || null,
-                    guid: item.guid || null,
-                    status: status || null,
-                    episodesWatched: watched
-                        ? Number(watched)
-                        : null,
-                    episodesTotal: total
-                        ? Number(total)
-                        : null,
-                    timestamp: new Date(item.pubDate).getTime()
-                };
+            const [ status, progress ] = he.decode(String(item.description)).split(" - ");
+            const [ watched, total ] = progress.replace(" episodes", "").split(" of ");
+
+            const malId = String(item.guid).match(/\/anime\/(\d+)/)?.[1];
+            const image = malId ? await getAniListCover(Number(malId)) : null;
+
+            incoming.push({
+                title,
+                type,
+                url: item.link || null,
+                guid: item.guid || null,
+                status: status || null,
+                episodesWatched: watched
+                    ? Number(watched)
+                    : null,
+                episodesTotal: total
+                    ? Number(total)
+                    : null,
+                image,
+                timestamp: new Date(item.pubDate).getTime()
             });
+        }
 
         // Merge with existing history
         const history = [
