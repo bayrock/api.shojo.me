@@ -1,6 +1,7 @@
 {
   "name": "api.shojo.me",
   "version": "1.0.0",
+  "type": "module",
   "scripts": {
   "dev": "bunx serve .",
     "start": "vercel dev",
